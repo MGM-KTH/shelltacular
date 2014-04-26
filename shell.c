@@ -17,12 +17,13 @@
 #include <string.h>
 
 #define BUFSIZE 70
-#define ARGSIZE 6
+#define ARGSIZE 6 /* command included in ARGSIZE */
 #define PROMPT "$"
 
 void loop();
 void newline();
 void prompt();
+void clearargs(char **args);
 void printargs(char **args);
 char *getargs(char *buffer, char **args);
 
@@ -63,13 +64,13 @@ int main(int argc, char **argv)
 void loop()
 {
 	char line_buffer[BUFSIZE];
-	char *args[ARGSIZE];
 	char *cmd;
+	char *args[ARGSIZE];
 
 	/* Start by outputing prompt */
 	prompt();
 
-	for(;fgets(line_buffer, BUFSIZE, stdin); cmd=NULL) { 
+	for(;fgets(line_buffer, BUFSIZE, stdin); cmd=NULL, clearargs(args)) {
 
 		cmd = getargs(line_buffer, args);
 
@@ -77,11 +78,23 @@ void loop()
 
 			printargs(args);
 
-		}
-		newline();
+		}else{newline();}
+
 		prompt();
 	}
 	newline(); /* Prettier exit with newline */
+}
+
+/*
+ * Clear the arguments by setting the first char of
+ * every arg to \0.
+ */
+void clearargs(char **args)
+{
+	int i;
+	for(i = 0; i < ARGSIZE && args[i] != NULL; i++) {
+		*args[i] = '\0';
+	}
 }
 
 /*
@@ -90,7 +103,7 @@ void loop()
 void printargs(char **args)
 {
 	int i;
-	for(i = 0; i < ARGSIZE && *args!=NULL; ++args, ++i) {
+	for(i = 0; i < ARGSIZE && *args!=NULL && *args[0]!='\0'; ++args, ++i) {
 		fprintf(stdout, "arg %d: %s\n", i, *args);
 	}
 }
