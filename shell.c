@@ -1,3 +1,16 @@
+
+/*
+ *
+ * 1) Läsa in ett kommando från kommandoraden
+ * 2) Parsa (tolka) kommandot för att se om det är ett inbyggt kommando eller ej
+ * 3a) Om det var ett inbyggt kommando utför det t.ex genom en sekvens av systemanrop - ta hand om eventuella fel.
+ * 3b) Det var inte ett inbyggt kommando. Skapa en ny process att exekvera kommandot i. I den nya processen byter man exekverande program till det program kommandot avsåg (första argumentet på kommandoraden). Se till att alla parametrar till kommandot kommer med! Själva kommandotolken skall sedan antingen vänta på att den nya processen avslutas om kom- mandot exekveras i förgrunden eller direkt ge en ny prompt om det exekveras i bakgrunden.
+ * 4) Innan den nya prompten ges skall man dock göra följande:
+ *     i) Om det var ett förgrundskommando så skriv ut statistik om hur lång tid processen var igång
+ *     ii) kontrollera om några bakgrundsprocesser avslutast och skriv ut information om dessa.
+ * 5) om kommandot exit ges avslutas kommandotolken.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
