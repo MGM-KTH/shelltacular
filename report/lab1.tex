@@ -1,0 +1,173 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+
+\usepackage[utf8]{inputenc} % Needed to support swedish "åäö" chars
+\usepackage{titling} % Used to re-style maketitle
+\usepackage{enumerate}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+\usepackage{hyperref}
+\usepackage{url}
+
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\normalfont} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+\usepackage{fancyvrb}
+\DefineShortVerb{\|}
+
+
+\posttitle{\par\end{center}} % Remove space between author and title
+%----------------------------------------------------------------------------------------
+% TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\title{ 
+\huge Laboration 2 \\ Small-Shell v2.51 för UNIX \\ % The assignment title
+\vspace{10pt}
+\normalfont \normalsize 
+\textsc{ID2200 - Operating Systems } \\ [25pt] %
+}
+
+\author{Gustaf Lindstedt \\ glindste@kth.se \\ 910301-2135 \and Martin Runelöv \\ mrunelov@kth.se \\ 900330-5738}
+
+\date{\vspace{8pt}\normalsize\today} % Today's date or a custom date
+
+\begin{document}
+
+\maketitle
+
+\section{Inledning}
+
+% OBS! Se till så att filerna är läsbara för assistenterna (se 3.4 ).
+Koden finns tillgänglig i följande sökväg:\\
+|/afs/ict.kth.se/home/m/r/mrunelov/os/lab2/shell.c|.\\
+
+samt i appendix.
+
+
+% Verksamhetsberättelse och synpunkter på laborationen. Beskriv arbetets utveckling. Hade du problem med verktygen,
+% kompilatorn m.fl.? Hur lång tid har arbetet tagit? Skriv dina förslag till förändringar, idéer etc. Tyck fritt! 
+% Vi är angelägna om att få respons, så att vi kan förbättra till nästa år.
+
+% Uppskattning av tidsåtgång och eventuella kommentarer kring laborationen
+\subsection{Verksamhetsberättelse}
+
+\subsection{Synpunkter}
+
+
+\section{Förberedelsefrågor}
+\begin{enumerate}[1)]
+
+\item 
+\emph{Motivera varför det ofta är bra att exekvera kommandon i en separat process:}
+
+-- Om man skapar nya kommandon i separata processer kan man ha kvar en 
+övervakande process som t.ex. hanterar signaler från dessa barnprocesser. 
+Med detta upplägg kan man bland annat hantera scenarion när kommandon 
+leder till fel. Om man inte skapar en ny process kan då hela programmet krascha.
+
+\item
+\emph{Vad händer om man inte i kommandotolken exekverar wait() för en 
+barn-process som avslutas?}
+
+-- Det ligger kvar onödig information i processtabellen, 
+eftersom operativsystemet väntar på att någon ska kontrollera status för processen. 
+Processen är då en så kallad zombieprocess.
+
+\item
+\emph{Hur skall man utläsa SIGSEGV?}
+
+''Segmentation violation'' (SIG = signal). 
+Vanligare namn är ''segmentation fault'' (eller ''access violation'').
+Felet indikerar att ett försök till ogiltig minnesläsning skedde.
+
+\item
+\emph{Varför kan man inte blockera SIGKILL?} % TODO: Se över svaret!
+
+-- För att man ska kunna tvinga processer att avsluta.
+
+\item
+\emph{Hur skall man utläsa deklarationen} |void (*disp)(int)|?
+
+-- Man deklarerar en funktionspekare, |disp|, som pekar på en funktion som 
+tar en int-parameter och returnerar void.
+
+\item
+\emph{Vilket systemanrop använder sigset(3C) troligtvis för att 
+installera en signalhanterare?} % TODO: Se över.
+
+-- sigaction(2) eller signal(2). 
+sigaction är mer troligt då signal inte är lika portabel.
+
+\item
+\emph{Hur gör man för att din kommandotolk inte skall termineras 
+då en förgrundsprocess i den termineras med <Ctrl-c>?}
+
+-- Genom att registrera en signal handler som hanterar SIGINT. 
+Man borde dock ta bort denna handler efter att förgrundsprocessen har avslutats
+då det inte är särskilt användarvänligt att förhindra SIGINT i huvudprogrammet.
+
+\item
+\emph{Studera körningsexemplet nedan och förklara varför man inte har bytt 
+''working directory'' till /home/ds/robertr när man avslutat miniShell:et?}
+
+-- När processen för miniShell skapas får den en kopia på environment-variabler. Processen har alltså ett eget, lokalt 
+working directory. När programmet avslutas ser vi återigen den tidigare processens working directory.
+
+\end{enumerate}
+
+\section{Problembeskrivning}
+
+
+\section{Programbeskrivning}
+
+Se appendix för exempelkörning.\\
+
+
+
+\newpage
+\section*{Appendix}
+\subsection*{Exempelkörning}
+%------------------------------------------------------------------------------
+
+\end{document}
