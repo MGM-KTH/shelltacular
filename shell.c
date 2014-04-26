@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 
 #define BUFSIZE 256
+#define PROMPT "$"
 
 void command_loop();
+void newline();
+void prompt();
 
 /*
  * Register a signal handler
@@ -43,11 +47,31 @@ int main(int argc, char **argv)
 void command_loop()
 {
     char command_buffer[BUFSIZE];
-    int retval;
+
+    /* Start by outputing prompt */
+    prompt();
+
     while(fgets(command_buffer, BUFSIZE, stdin)) { 
-        retval = fputs("\n", stdout);
-        if(EOF == retval) {
-            exit(0);
-        }
+        newline();
+        prompt();
+    }
+    newline(); /* Prettier exit with newline */
+}
+
+void newline()
+{
+    int retval;
+    retval = fputs("\n", stdout);
+    if(EOF == retval) {
+        exit(0);
+    }
+}
+
+void prompt()
+{
+    int retval;
+    retval = fputs(PROMPT, stdout);
+    if(EOF == retval) {
+        exit(0);
     }
 }
