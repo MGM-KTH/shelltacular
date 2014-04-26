@@ -114,7 +114,7 @@ char *getargs(char *buffer, char **args)
 		string = NULL, token = NULL, i++, ptr++) {
 
 		/*
-		 * String should be the string to be parsed the first time
+		 * 'string' should be the string to be parsed the first time
 		 * the call is made. Every subsequent call string should
 		 * be NULL.
 		 */
