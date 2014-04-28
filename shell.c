@@ -91,7 +91,7 @@ void sigint_handler(int sig)
 
 int main(int argc, char **argv)
 {
-	register_sighandler(SIGINT, sigint_handler);
+	/* register_sighandler(SIGINT, sigint_handler); */
 	loop();
 	return 0;
 }
