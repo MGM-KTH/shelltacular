@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <unistd.h>
 
 #define BUFSIZE 70
 #define ARGSIZE 6 /* command included in ARGSIZE */
@@ -26,6 +27,7 @@ void prompt();
 void clearargs(char **args);
 void printargs(char **args);
 char *getargs(char *buffer, char **args);
+void spawn_command(char *cmd, char **args);
 
 /*
  * Register a signal handler
@@ -77,12 +79,18 @@ void loop()
 		if(NULL != cmd) {
 
 			printargs(args);
+			spawn_command(cmd, args);
 
 		}else{newline();}
 
 		prompt();
 	}
 	newline(); /* Prettier exit with newline */
+}
+
+void spawn_command(char *cmd, char **args)
+{
+	execvp(cmd, args);
 }
 
 /*
@@ -131,7 +139,7 @@ char *getargs(char *buffer, char **args)
 		 * the call is made. Every subsequent call string should
 		 * be NULL.
 		 */
-		token = strtok_r(string, " ", &saveptr);
+		token = strtok_r(string, " \n", &saveptr);
 
 		/*
 		 * 0x0A is the LF character, which apparently is the first
@@ -140,6 +148,7 @@ char *getargs(char *buffer, char **args)
 		 */
 		if(NULL == token || !strcmp("\x0A",token)) {
 			/* No more tokens*/
+			*ptr = NULL;
 			break;
 		}else if(!strcmp("\x0A",token) && i == 0) {
 			/* Empty command */
