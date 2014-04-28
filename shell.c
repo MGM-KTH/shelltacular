@@ -170,6 +170,21 @@ void change_dir(char *directory)
 {
 	int retval;
 
+	/*
+ 	 * If no directory is specified, go home.
+ 	 * Needs to be the first check, since strcmp fails with NULL as argument.
+ 	 */
+	if(NULL == directory || !strcmp("~",directory)) {
+		retval = chdir(getenv("HOME"));
+		if(-1 == retval) {
+			perror("error changing directory");
+		}
+		return;
+	}
+
+	/*
+ 	 * Fancy '..' macro
+ 	 */
 	if(strcmp("..",directory) == 0) {
 		directory = getenv("PWD");
 		size_t i = strlen(directory);
@@ -252,15 +267,16 @@ void newline()
 	int retval;
 	retval = fputs("\n", stdout);
 	if(EOF == retval) {
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 }
 
 void prompt()
 {
 	int retval;
+
 	retval = fputs(PROMPT, stdout);
 	if(EOF == retval) {
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 }
