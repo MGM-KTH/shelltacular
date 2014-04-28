@@ -11,7 +11,7 @@
  * 5) om kommandot exit ges avslutas kommandotolken.
  */
 
-#define _POSIX_C_SOURCE 199506L
+#define _POSIX_C_SOURCE 200112L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +32,9 @@
 #define BUFSIZE 70
 #define ARGSIZE 6 /* command included in ARGSIZE */
 #define PROMPT "$ "
+
+#define C_FG_GREEN "\x1b[32m"
+#define C_FG_WHITE "\x1b[37m"
 
 void loop();
 void newline();
@@ -248,6 +251,7 @@ void print_color(const char *string, int fgc, int bgc, int attr)
 void change_dir(char *directory)
 {
 	int retval;
+	char buf[256];
 
 	/*
  	 * If no directory is specified, go home.
@@ -257,6 +261,10 @@ void change_dir(char *directory)
 		retval = chdir(getenv("HOME"));
 		if(-1 == retval) {
 			perror("error changing directory");
+		}else{
+			if(NULL != getcwd(buf, sizeof(buf))) {
+				setenv("PWD", buf, 1);
+			}
 		}
 		return;
 	}
@@ -268,8 +276,13 @@ void change_dir(char *directory)
 		directory = getenv("PWD");
 		size_t i = strlen(directory);
 
-		for(; directory[i] != '/'; i--) {
-			/* Find the last slash character */
+		for(; i > 1 && directory[i] != '/'; i--) {
+			/*
+ 			 * Find the last slash character.
+			 * Stop search at i == 2, since i will then be 1 at loop exit
+			 * and the last slash will be at index 0, meaning this is a
+			 * reference to the root directory.
+ 			 */
 		}
 		/* Set it to terminating null byte */
 		directory[i] = '\0';
@@ -278,6 +291,10 @@ void change_dir(char *directory)
 	retval = chdir(directory);
 	if(-1 == retval) {
 		perror("error changing directory");
+	}else{
+		if(NULL != getcwd(buf, sizeof(buf))) {
+			setenv("PWD", buf, 1);
+		}
 	}
 }
 
@@ -366,8 +383,15 @@ void newline()
 void prompt()
 {
 	int retval;
+	char prompt[256];
+	prompt[0] = '\0'; /* Make sure that prompt buffer is empty */
 
-	retval = fputs(PROMPT, stdout);
+	strcat(prompt, C_FG_GREEN);
+	strcat(prompt, getenv("PWD")); /* Maybe use getcwd instead?? */
+	strcat(prompt, PROMPT);
+	strcat(prompt, C_FG_WHITE);
+
+	retval = fputs(prompt, stdout);
 	if(EOF == retval) {
 		exit(EXIT_SUCCESS);
 	}
