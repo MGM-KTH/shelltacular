@@ -102,6 +102,17 @@ void change_dir(char *directory)
 {
 	int retval;
 
+	if(!strcmp("..",directory)) {
+		directory = getenv("PWD");
+		size_t i = strlen(directory);
+
+		for(; directory[i] != '/'; i--) {
+			/* Find the last slash character */
+		}
+		/* Set it to terminating null byte */
+		directory[i] = '\0';
+	}
+
 	retval = chdir(directory);
 	if(-1 == retval) {
 		perror("error changing directory");
