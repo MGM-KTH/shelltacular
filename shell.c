@@ -125,6 +125,7 @@ void spawn_command(char *cmd, char **args)
 	int status, retval;
 	struct timeval tv1, tv2, diff;
 
+	/* check if the command is the built-in command 'exit' */
 	if(strcmp("exit",cmd) == 0) {
             printf(": I'm afraid. I'm afraid, Dave. Dave, my mind is going.\n");
             printf("I can feel it. I can feel it. My mind is going. There is no question about it.\n");
@@ -132,11 +133,13 @@ void spawn_command(char *cmd, char **args)
             exit(EXIT_SUCCESS);
     }
 
+	/* check if the command is the built-in command 'cd' */
 	if(strcmp("cd",cmd) == 0) {
 		change_dir(args[1]);
 		return;
 	}
 
+	/* else, create a child process to run the system command */
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
 		printf("%s %d\n", "Spawned foreground process with pid:", getpid());
