@@ -17,6 +17,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <sys/types.h>
+
+#ifdef __APPLE__
+#include <sys/wait.h>
+#else
+#include <wait.h>
+#endif
 
 #define BUFSIZE 70
 #define ARGSIZE 6 /* command included in ARGSIZE */
@@ -94,9 +101,6 @@ void loop()
 	char line_buffer[BUFSIZE];
 	char *cmd;
 	char *args[ARGSIZE];
-	pid_t child_pid;
-	int status;
-	struct timeval tv1, tv2, diff;
 
 	/* Start by outputing prompt */
 	prompt();
@@ -106,26 +110,7 @@ void loop()
 		cmd = getargs(line_buffer, args);
 
 		if(NULL != cmd) {
-			child_pid = fork();
-			if (0 == child_pid) { /* Run command in child */
-				printf("%s %d\n", "Spawned foreground process with pid:", getpid());
-				spawn_command(cmd, args);
-			}
-			else { /* Wait for child in parent */
-				gettimeofday(&tv1, NULL);
-
-				if(-1 == child_pid) { 
-					perror("fork() failed!");
-					exit(EXIT_FAILURE);
-				}
-
-				waitpid(child_pid, &status, 0); /* 0: No options */
-				gettimeofday(&tv2, NULL);
-				timeval_diff(&diff, &tv2, &tv1);
-				long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
-				printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, cmd, msec); 
-
-			}
+			spawn_command(cmd, args);
 
 		}else{newline();}
 
@@ -136,12 +121,43 @@ void loop()
 
 void spawn_command(char *cmd, char **args)
 {
+	pid_t child_pid;
+	int status, retval;
+	struct timeval tv1, tv2, diff;
+
 	if(!strcmp("cd",cmd)) {
 		change_dir(args[1]);
 		return;
 	}
-	execvp(cmd, args);
-	perror("Unknown command");
+
+	child_pid = fork();
+	if (0 == child_pid) { /* Run command in child */
+		printf("%s %d\n", "Spawned foreground process with pid:", getpid());
+		retval = execvp(cmd, args);
+		if(-1 == retval) {
+			perror("Unknown command");
+		}
+	}
+	else { /* Wait for child in parent */
+		gettimeofday(&tv1, NULL);
+
+		if(-1 == child_pid) { 
+			perror("fork() failed!");
+			exit(EXIT_FAILURE);
+		}
+
+		waitpid(child_pid, &status, 0); /* 0: No options */
+
+		/*
+ 		 * Calculate running time of child process
+ 		 */
+		gettimeofday(&tv2, NULL);
+		timeval_diff(&diff, &tv2, &tv1);
+		long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
+
+		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, cmd, msec); 
+
+	}
 }
 
 void change_dir(char *directory)
