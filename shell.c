@@ -16,10 +16,11 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #define BUFSIZE 70
 #define ARGSIZE 6 /* command included in ARGSIZE */
-#define PROMPT "$"
+#define PROMPT "$ "
 
 void loop();
 void newline();
@@ -29,6 +30,30 @@ void printargs(char **args);
 char *getargs(char *buffer, char **args);
 void spawn_command(char *cmd, char **args);
 void change_dir(char *directory);
+void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2);
+
+/* 
+ * source: http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html 
+ */
+void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2) {
+	/* Perform the carry for the later subtraction by updating y. */
+	if (tv1->tv_usec < tv2->tv_usec) {
+		int nsec = (tv2->tv_usec - tv1->tv_usec) / 1000000 + 1;
+		tv2->tv_usec -= 1000000 * nsec;
+		tv2->tv_sec += nsec;
+	}
+	if (tv1->tv_usec - tv2->tv_usec > 1000000) {
+		int nsec = (tv1->tv_usec - tv2->tv_usec) / 1000000;
+		tv2->tv_usec += 1000000 * nsec;
+		tv2->tv_sec -= nsec;
+	}
+     
+	/* Compute the time remaining to wait.
+		tv_usec is certainly positive. */
+       diff->tv_sec = tv1->tv_sec - tv2->tv_sec;
+       diff->tv_usec = tv1->tv_usec - tv2->tv_usec;
+       return;
+}
 
 /*
  * Register a signal handler
@@ -59,7 +84,7 @@ void sigint_handler(int sig)
 
 int main(int argc, char **argv)
 {
-	register_sighandler(SIGINT, sigint_handler);
+	/* register_sighandler(SIGINT, sigint_handler); */
 	loop();
 	return 0;
 }
@@ -69,6 +94,9 @@ void loop()
 	char line_buffer[BUFSIZE];
 	char *cmd;
 	char *args[ARGSIZE];
+	pid_t child_pid;
+	int status;
+	struct timeval tv1, tv2, diff;
 
 	/* Start by outputing prompt */
 	prompt();
@@ -78,9 +106,26 @@ void loop()
 		cmd = getargs(line_buffer, args);
 
 		if(NULL != cmd) {
+			child_pid = fork();
+			if (0 == child_pid) { /* Run command in child */
+				printf("%s %d\n", "Spawned foreground process with pid:", getpid());
+				spawn_command(cmd, args);
+			}
+			else { /* Wait for child in parent */
+				gettimeofday(&tv1, NULL);
 
-			printargs(args);
-			spawn_command(cmd, args);
+				if(-1 == child_pid) { 
+					perror("fork() failed!");
+					exit(EXIT_FAILURE);
+				}
+
+				waitpid(child_pid, &status, 0); /* 0: No options */
+				gettimeofday(&tv2, NULL);
+				timeval_diff(&diff, &tv2, &tv1);
+				long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
+				printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, cmd, msec); 
+
+			}
 
 		}else{newline();}
 
@@ -96,6 +141,7 @@ void spawn_command(char *cmd, char **args)
 		return;
 	}
 	execvp(cmd, args);
+	perror("Unknown command");
 }
 
 void change_dir(char *directory)
