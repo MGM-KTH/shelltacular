@@ -11,6 +11,8 @@
  * 5) om kommandot exit ges avslutas kommandotolken.
  */
 
+#define _POSIX_C_SOURCE 199506L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -25,6 +27,8 @@
 #include <wait.h>
 #endif
 
+#define PROCESS_KIND_FOREGROUND 1
+#define PROCESS_KIND_BACKGROUND 2
 #define BUFSIZE 70
 #define ARGSIZE 6 /* command included in ARGSIZE */
 #define PROMPT "$ "
@@ -37,7 +41,12 @@ void printargs(char **args);
 int getargs(char *buffer, char **args);
 void spawn_command(char **args, int process_kind);
 void change_dir(char *directory);
+void spawn_foreground_process(char **args);
+void spawn_background_process(char **args);
+void poll_background_processes();
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2);
+
+int NUM_BACKGROUND_PROCESSES = 0;
 
 /* 
  * source: http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html 
@@ -99,33 +108,33 @@ int main(int argc, char **argv)
 void loop()
 {
 	char line_buffer[BUFSIZE];
-	int retval;
+	int process_kind;
 	char *args[ARGSIZE];
 
 	/* Start by outputing prompt */
 	prompt();
 
-	for(;fgets(line_buffer, BUFSIZE, stdin); retval=0, clearargs(args)) {
+	for(;fgets(line_buffer, BUFSIZE, stdin); process_kind=0, clearargs(args)) {
 
-		retval = getargs(line_buffer, args);
+		process_kind = getargs(line_buffer, args);
 
-		if(0 < retval) {
+		if(0 < process_kind) {
 
-			spawn_command(args, retval);
+			spawn_command(args, process_kind);
 
 		}
 
+		if (NUM_BACKGROUND_PROCESSES > 0) {
+			poll_background_processes();
+		}
 		prompt();
 	}
+
 	newline(); /* Prettier exit with newline */
 }
 
-void spawn_command(char **args, int process_kind)
+void spawn_command(char **args, int process_kind) 
 {
-	pid_t child_pid;
-	int status, retval;
-	struct timeval tv1, tv2, diff;
-
 	/* check if the command is the built-in command 'exit' */
 	if(strcmp("exit",args[0]) == 0) {
             printf(": I'm afraid. I'm afraid, Dave. Dave, my mind is going.\n");
@@ -143,9 +152,23 @@ void spawn_command(char **args, int process_kind)
 
 
 	/* else, create a child process to run the system command */
+	printf("process kind: %d\n", process_kind);
+	if (process_kind == PROCESS_KIND_FOREGROUND) {
+		spawn_foreground_process(args);
+	}
+	else if (process_kind == PROCESS_KIND_BACKGROUND) {
+		spawn_background_process(args);
+	}
+}
+
+void spawn_foreground_process(char **args) 
+{
+	pid_t child_pid;
+	int status, retval;
+	struct timeval tv1, tv2, diff;
+
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
-		printf("%s %d\n", "Spawned foreground process with pid:", getpid());
 		retval = execvp(args[0], args);
 		if(-1 == retval) {
 			perror("Unknown command");
@@ -153,6 +176,7 @@ void spawn_command(char **args, int process_kind)
 		}
 	}
 	else { /* Wait for child in parent */
+		printf("%s %d\n", "Spawned foreground process with pid:", child_pid);
 		gettimeofday(&tv1, NULL);
 
 		if(-1 == child_pid) { 
@@ -169,7 +193,48 @@ void spawn_command(char **args, int process_kind)
 		timeval_diff(&diff, &tv2, &tv1);
 		long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
 		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, args[0], msec);
+	}
+	return;
+}
 
+void spawn_background_process(char **args) 
+{
+	pid_t child_pid;
+	int retval;
+
+	child_pid = fork();
+	if (0 == child_pid) { /* Run command in child */
+		retval = execvp(args[0], args);
+		if(-1 == retval) {
+			perror("Unknown command");
+			exit(EXIT_FAILURE);
+		}
+	}
+	else {
+		++NUM_BACKGROUND_PROCESSES;
+		printf("%s %d\n", "Spawned background process with pid:", child_pid);
+	}
+	return;
+}
+
+void poll_background_processes()
+{
+	pid_t child_pid;
+	int status;
+	while(1) {
+		child_pid = waitpid(-1, &status, WNOHANG); /* Non-blocking polling for any child process */
+		if (0 == child_pid) { /* No child processes wishes to report status */
+			return;
+		}
+		if (-1 == child_pid) { /* received signal? */
+			return;
+		}
+		else {
+			if WIFEXITED(status) {
+				--NUM_BACKGROUND_PROCESSES;
+				printf("Background process %d terminated\n", child_pid);
+			}
+		}
 	}
 }
 
@@ -242,6 +307,7 @@ void printargs(char **args)
 int getargs(char *buffer, char **args)
 {
 	int i;
+	int process_type = PROCESS_KIND_FOREGROUND;
 	char *token;
 	char *string;
 	char *saveptr;
@@ -266,11 +332,19 @@ int getargs(char *buffer, char **args)
 				return 0;
 			}
 		}
-
-		*ptr = token;
+		else {
+			char last_char = token[strlen(token)-1];
+			if (last_char == '&') {
+				process_type = PROCESS_KIND_BACKGROUND;
+				*ptr = NULL;
+				break;
+			}
+			else {
+				*ptr = token;
+			}
+		}
 	}
-
-	return 1;
+	return process_type;
 }
 
 void newline()
