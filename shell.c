@@ -33,8 +33,18 @@
 #define ARGSIZE 6 /* command included in ARGSIZE */
 #define PROMPT "$ "
 
-#define C_FG_GREEN "\x1b[32m"
-#define C_FG_WHITE "\x1b[37m"
+#define C_FG_BLACK   "\x1b[30m"
+#define C_FG_RED     "\x1b[31m"
+#define C_FG_GREEN   "\x1b[32m"
+#define C_FG_YELLOW  "\x1b[33m"
+#define C_FG_BLUE    "\x1b[34m"
+#define C_FG_MAGENTA "\x1b[35m"
+#define C_FG_CYAN    "\x1b[36m"
+#define C_FG_WHITE   "\x1b[37m"
+#define C_FG_RESET   "\x1b[39m"
+#define BOLD_ON      "\x1b[1m"
+#define BLINK_ON     "\x1b[5m"
+#define ALL_OFF      "\x1b[0m"
 
 void loop();
 void newline();
@@ -105,6 +115,11 @@ void sigint_handler(int sig)
 int main(int argc, char **argv)
 {
 	/* register_sighandler(SIGINT, sigint_handler); */
+
+	printf("%sCOLOR TEST\n%sBLACK %sRED %sGREEN %sYELLOW %sBLUE %sMAGENTA %sCYAN %sWHITE\n%s",
+			BLINK_ON,
+			C_FG_BLACK, C_FG_RED, C_FG_GREEN, C_FG_YELLOW, C_FG_BLUE,
+			C_FG_MAGENTA, C_FG_CYAN, C_FG_WHITE, ALL_OFF);
 	loop();
 	return 0;
 }
@@ -180,7 +195,8 @@ void spawn_foreground_process(char **args)
 		}
 	}
 	else { /* Wait for child in parent */
-		printf("%s %d\n", "Spawned foreground process with pid:", child_pid);
+		printf("%s%s %d%s\n", C_FG_YELLOW,
+				"Spawned foreground process with pid:", child_pid, C_FG_RESET);
 		gettimeofday(&tv1, NULL);
 
 		if(-1 == child_pid) { 
@@ -196,7 +212,8 @@ void spawn_foreground_process(char **args)
 		gettimeofday(&tv2, NULL);
 		timeval_diff(&diff, &tv2, &tv1);
 		long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
-		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, args[0], msec);
+		printf("%sForeground process %d running '%s' ran for %ld msec%s\n",
+				C_FG_BLUE, child_pid, args[0], msec, C_FG_RESET);
 	}
 	return;
 }
@@ -216,7 +233,8 @@ void spawn_background_process(char **args)
 	}
 	else {
 		++NUM_BACKGROUND_PROCESSES;
-		printf("%s %d\n", "Spawned background process with pid:", child_pid);
+		printf("%s%s %d%s\n", C_FG_YELLOW,
+				"Spawned background process with pid:", child_pid, C_FG_RESET);
 	}
 	return;
 }
@@ -236,7 +254,8 @@ void poll_background_processes()
 		else {
 			if WIFEXITED(status) {
 				--NUM_BACKGROUND_PROCESSES;
-				printf("Background process %d terminated\n", child_pid);
+				printf("%sBackground process %d terminated%s\n",
+						C_FG_BLUE, child_pid, C_FG_RESET);
 			}
 		}
 	}
@@ -386,10 +405,11 @@ void prompt()
 	char prompt[256];
 	prompt[0] = '\0'; /* Make sure that prompt buffer is empty */
 
-	strcat(prompt, C_FG_GREEN);
+	strcat(prompt, C_FG_MAGENTA);
 	strcat(prompt, getenv("PWD")); /* Maybe use getcwd instead?? */
+	strcat(prompt, C_FG_CYAN);
 	strcat(prompt, PROMPT);
-	strcat(prompt, C_FG_WHITE);
+	strcat(prompt, C_FG_RESET);
 
 	retval = fputs(prompt, stdout);
 	if(EOF == retval) {
