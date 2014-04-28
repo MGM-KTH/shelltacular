@@ -29,6 +29,7 @@ void clearargs(char **args);
 void printargs(char **args);
 char *getargs(char *buffer, char **args);
 void spawn_command(char *cmd, char **args);
+void change_dir(char *directory);
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2);
 
 /* 
@@ -135,8 +136,22 @@ void loop()
 
 void spawn_command(char *cmd, char **args)
 {
+	if(!strcmp("cd",cmd)) {
+		change_dir(args[1]);
+		return;
+	}
 	execvp(cmd, args);
 	perror("Unknown command");
+}
+
+void change_dir(char *directory)
+{
+	int retval;
+
+	retval = chdir(directory);
+	if(-1 == retval) {
+		perror("error changing directory");
+	}
 }
 
 /*
