@@ -45,12 +45,12 @@ void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2) {
 	/* Perform the carry for the later subtraction by updating y. */
 	if (tv1->tv_usec < tv2->tv_usec) {
-		int nsec = (tv2->tv_usec - tv1->tv_usec) / 1000000 + 1;
+		long int nsec = (tv2->tv_usec - tv1->tv_usec) / 1000000 + 1;
 		tv2->tv_usec -= 1000000 * nsec;
 		tv2->tv_sec += nsec;
 	}
 	if (tv1->tv_usec - tv2->tv_usec > 1000000) {
-		int nsec = (tv1->tv_usec - tv2->tv_usec) / 1000000;
+		long int nsec = (tv1->tv_usec - tv2->tv_usec) / 1000000;
 		tv2->tv_usec += 1000000 * nsec;
 		tv2->tv_sec -= nsec;
 	}
@@ -85,13 +85,13 @@ void register_sighandler( int signal_code, void (*handler) (int sig) )
 
 void sigint_handler(int sig)
 {
-	fputs("\n", stdout);
+	/* fputs("I'm sorry, Dave. I'm afraid I can't do that.\n", stdout); */
 	loop();
 }
 
 int main(int argc, char **argv)
 {
-	/* register_sighandler(SIGINT, sigint_handler); */
+	register_sighandler(SIGINT, sigint_handler);
 	loop();
 	return 0;
 }
@@ -125,7 +125,14 @@ void spawn_command(char *cmd, char **args)
 	int status, retval;
 	struct timeval tv1, tv2, diff;
 
-	if(!strcmp("cd",cmd)) {
+	if(strcmp("exit",cmd) == 0) {
+            printf(": I'm afraid. I'm afraid, Dave. Dave, my mind is going.\n");
+            printf("I can feel it. I can feel it. My mind is going. There is no question about it.\n");
+            printf("I can feel it. I can feel it. I can feel it. I'm a... fraid.\n");
+            exit(EXIT_SUCCESS);
+    }
+
+	if(strcmp("cd",cmd) == 0) {
 		change_dir(args[1]);
 		return;
 	}
@@ -154,8 +161,7 @@ void spawn_command(char *cmd, char **args)
 		gettimeofday(&tv2, NULL);
 		timeval_diff(&diff, &tv2, &tv1);
 		long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
-
-		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, cmd, msec); 
+		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, cmd, msec);
 
 	}
 }
@@ -164,7 +170,7 @@ void change_dir(char *directory)
 {
 	int retval;
 
-	if(!strcmp("..",directory)) {
+	if(strcmp("..",directory) == 0) {
 		directory = getenv("PWD");
 		size_t i = strlen(directory);
 
