@@ -38,6 +38,7 @@ int getargs(char *buffer, char **args);
 void spawn_command(char **args, int process_kind);
 void change_dir(char *directory);
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2);
+void print_color(const char *string, int fgc, int bgc, int attr);
 
 /* 
  * source: http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html 
@@ -171,6 +172,12 @@ void spawn_command(char **args, int process_kind)
 		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, args[0], msec);
 
 	}
+}
+
+void print_color(const char *string, int fgc, int bgc, int attr)
+{
+	printf("\x1b[%dm\x1b[%dm%s\x1b[%dm\x1b[%dm",
+			fgc, bgc, string, 37, 40);
 }
 
 void change_dir(char *directory)
