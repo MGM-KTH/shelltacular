@@ -141,18 +141,10 @@ char *getargs(char *buffer, char **args)
 		 */
 		token = strtok_r(string, " \n", &saveptr);
 
-		/*
-		 * 0x0A is the LF character, which apparently is the first
-		 * token in an empty line, and the token returned if line
-		 * ends with a space character.
-		 */
-		if(NULL == token || !strcmp("\x0A",token)) {
+		if(NULL == token) {
 			/* No more tokens*/
 			*ptr = NULL;
 			break;
-		}else if(!strcmp("\x0A",token) && i == 0) {
-			/* Empty command */
-			return NULL;
 		}
 
 		*ptr = token;
