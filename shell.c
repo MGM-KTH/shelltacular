@@ -139,6 +139,8 @@ void spawn_command(char *cmd, char **args)
 		return;
 	}
 
+
+
 	/* else, create a child process to run the system command */
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
@@ -146,6 +148,7 @@ void spawn_command(char *cmd, char **args)
 		retval = execvp(cmd, args);
 		if(-1 == retval) {
 			perror("Unknown command");
+			exit(EXIT_FAILURE);
 		}
 	}
 	else { /* Wait for child in parent */
