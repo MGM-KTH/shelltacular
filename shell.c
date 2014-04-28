@@ -34,8 +34,8 @@ void newline();
 void prompt();
 void clearargs(char **args);
 void printargs(char **args);
-char *getargs(char *buffer, char **args);
-void spawn_command(char *cmd, char **args);
+int getargs(char *buffer, char **args);
+void spawn_command(char **args, int process_kind);
 void change_dir(char *directory);
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2);
 
@@ -99,40 +99,41 @@ int main(int argc, char **argv)
 void loop()
 {
 	char line_buffer[BUFSIZE];
-	char *cmd;
+	int retval;
 	char *args[ARGSIZE];
 
 	/* Start by outputing prompt */
 	prompt();
 
-	for(;fgets(line_buffer, BUFSIZE, stdin); cmd=NULL, clearargs(args)) {
+	for(;fgets(line_buffer, BUFSIZE, stdin); retval=0, clearargs(args)) {
 
-		cmd = getargs(line_buffer, args);
+		retval = getargs(line_buffer, args);
 
-		if(NULL != cmd) {
-			spawn_command(cmd, args);
+		if(0 < retval) {
 
-		}else{newline();}
+			spawn_command(args, retval);
+
+		}
 
 		prompt();
 	}
 	newline(); /* Prettier exit with newline */
 }
 
-void spawn_command(char *cmd, char **args)
+void spawn_command(char **args, int process_kind)
 {
 	pid_t child_pid;
 	int status, retval;
 	struct timeval tv1, tv2, diff;
 
-	if(strcmp("exit",cmd) == 0) {
+	if(strcmp("exit",args[0]) == 0) {
             printf(": I'm afraid. I'm afraid, Dave. Dave, my mind is going.\n");
             printf("I can feel it. I can feel it. My mind is going. There is no question about it.\n");
             printf("I can feel it. I can feel it. I can feel it. I'm a... fraid.\n");
             exit(EXIT_SUCCESS);
     }
 
-	if(strcmp("cd",cmd) == 0) {
+	if(strcmp("cd",args[0]) == 0) {
 		change_dir(args[1]);
 		return;
 	}
@@ -140,7 +141,7 @@ void spawn_command(char *cmd, char **args)
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
 		printf("%s %d\n", "Spawned foreground process with pid:", getpid());
-		retval = execvp(cmd, args);
+		retval = execvp(args[0], args);
 		if(-1 == retval) {
 			perror("Unknown command");
 		}
@@ -161,7 +162,7 @@ void spawn_command(char *cmd, char **args)
 		gettimeofday(&tv2, NULL);
 		timeval_diff(&diff, &tv2, &tv1);
 		long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
-		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, cmd, msec);
+		printf("Foreground process %d running '%s' ran for %ld msec\n", child_pid, args[0], msec);
 
 	}
 }
@@ -228,9 +229,11 @@ void printargs(char **args)
 /*
  * Extract the arguments from the buffer into args
  *
- * returns the first token or NULL if no tokens were parsed
+ * returns 0 if no args were parsed
+ * returns 1 if command is for a foreground process
+ * returns 2 if command is for a background process
  */
-char *getargs(char *buffer, char **args)
+int getargs(char *buffer, char **args)
 {
 	int i;
 	char *token;
@@ -253,13 +256,15 @@ char *getargs(char *buffer, char **args)
 		if(NULL == token) {
 			/* No more tokens*/
 			*ptr = NULL;
-			break;
+			if(0 == i) {
+				return 0;
+			}
 		}
 
 		*ptr = token;
 	}
 
-	return args[0];
+	return 1;
 }
 
 void newline()
