@@ -45,6 +45,7 @@ void spawn_foreground_process(char **args);
 void spawn_background_process(char **args);
 void poll_background_processes();
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2);
+void print_color(const char *string, int fgc, int bgc, int attr);
 
 int NUM_BACKGROUND_PROCESSES = 0;
 
@@ -236,6 +237,12 @@ void poll_background_processes()
 			}
 		}
 	}
+}
+
+void print_color(const char *string, int fgc, int bgc, int attr)
+{
+	printf("\x1b[%dm\x1b[%dm%s\x1b[%dm\x1b[%dm",
+			fgc, bgc, string, 37, 40);
 }
 
 void change_dir(char *directory)
