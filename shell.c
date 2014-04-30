@@ -1,14 +1,30 @@
-
 /*
+ * shelltacular - command interpreter (shell)
  *
- * 1) Läsa in ett kommando från kommandoraden
- * 2) Parsa (tolka) kommandot för att se om det är ett inbyggt kommando eller ej
- * 3a) Om det var ett inbyggt kommando utför det t.ex genom en sekvens av systemanrop - ta hand om eventuella fel.
- * 3b) Det var inte ett inbyggt kommando. Skapa en ny process att exekvera kommandot i. I den nya processen byter man exekverande program till det program kommandot avsåg (första argumentet på kommandoraden). Se till att alla parametrar till kommandot kommer med! Själva kommandotolken skall sedan antingen vänta på att den nya processen avslutas om kom- mandot exekveras i förgrunden eller direkt ge en ny prompt om det exekveras i bakgrunden.
- * 4) Innan den nya prompten ges skall man dock göra följande:
- *     i) Om det var ett förgrundskommando så skriv ut statistik om hur lång tid processen var igång
- *     ii) kontrollera om några bakgrundsprocesser avslutast och skriv ut information om dessa.
- * 5) om kommandot exit ges avslutas kommandotolken.
+ * SYNTAX
+ *	   shelltacular - start the shell
+ *     BUILT-IN COMMANDS
+ *         cd - change working directory
+ *         exit - exit the shell (<C-d>)
+ *
+ *     <cmd>     - run command cmd as a foreground process
+ *     <cmd> &   - run command cmd as a background process
+ *
+ * DESCRIPTION
+ *     shelltacular is a minimalistic shell with two built-in commands,
+ * 	   cd and exit. All other commands will be executed using exec.
+ *     The shell supports foreground and background processes.
+ *     By default, a SIGINT signal handler is registered for all processes.
+ *
+ * OPTIONS
+ *     N/A
+ *
+ * SEE ALSO
+ *     bash(1), wait(2), exec(3), fork(2), signal(7), getenv(3), gettimeofday(2)
+ *
+ * AUTHORS
+ *      Gustaf Lindstedt (glindste@kth.se)
+ *      Martin Runelöv (mrunelov@kth.se)
  */
 
 #define _POSIX_C_SOURCE 200112L
@@ -146,14 +162,13 @@ void loop()
 		process_type = getargs(line_buffer, args);
 
 		if(0 < process_type) {
-
 			spawn_command(args, process_type);
-
 		}
-
+		
 		if (NUM_BACKGROUND_PROCESSES > 0) {
 			poll_background_processes();
 		}
+
 		prompt();
 	}
 
@@ -178,8 +193,6 @@ void spawn_command(char **args, int process_type)
 		change_dir(args[1]);
 		return;
 	}
-
-
 
 	/* else, create a child process to run the system command */
 	if (process_type == PROCESS_TYPE_FOREGROUND) {
