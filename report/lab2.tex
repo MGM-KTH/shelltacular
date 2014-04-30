@@ -124,7 +124,17 @@ Felet indikerar att ett försök till ogiltig minnesläsning skedde.
 \item
 \emph{Varför kan man inte blockera SIGKILL?} % TODO: Se över svaret!
 
--- För att man ska kunna tvinga processer att avsluta.
+-- För att man ska kunna tvinga processer att pausa (|SIGSTOP|) och avsluta.
+
+% Detta finns dokumenterat i man-filen för sigaction:
+% \begin{verbatim}
+% ERRORS
+%      The sigaction() system call will fail and no new signal handler will be
+%      installed if one of the following occurs:
+
+%      [EINVAL]           An attempt is made to ignore or supply a handler for
+%                         SIGKILL or SIGSTOP.
+% \end{verbatim}
 
 \item
 \emph{Hur skall man utläsa deklarationen} |void (*disp)(int)|?
@@ -136,16 +146,17 @@ tar en int-parameter och returnerar void.
 \emph{Vilket systemanrop använder sigset(3C) troligtvis för att 
 installera en signalhanterare?} % TODO: Se över.
 
--- sigaction(2) eller signal(2). 
-sigaction är mer troligt då signal inte är lika portabel.
+-- sigaction(2) eller signal(2).
+
+sigaction verkar vara det man använder nuförtiden då signal inte är lika portabel.
 
 \item
 \emph{Hur gör man för att din kommandotolk inte skall termineras 
 då en förgrundsprocess i den termineras med <Ctrl-c>?}
 
--- Genom att registrera en signal handler som hanterar SIGINT. 
+-- Genom att registrera en signal handler som hanterar |SIGINT|. 
 Man borde dock ta bort denna handler efter att förgrundsprocessen har avslutats
-då det inte är särskilt användarvänligt att förhindra SIGINT i huvudprogrammet.
+då det inte är särskilt användarvänligt att förhindra |SIGINT| i huvudprogrammet.
 
 \item
 \emph{Studera körningsexemplet nedan och förklara varför man inte har bytt 
@@ -158,8 +169,35 @@ working directory. När programmet avslutas ser vi återigen den tidigare proces
 
 \section{Problembeskrivning}
 
+Uppgiften går ut på att skriva en enkel kommandotolk 
+som hanterar både förgrunds- och bakgrundsprocesser.
+Utöver att delegera anrop till |exec| ska två inbyggda kommandon,
+ |cd| (change directory), och |exit| (avsluta) implementeras.
+
+När något icke-inbyggt kommando ges startas en ny process, och |pid| för denna process skrivs ut.
+Det ska även skrivas ut ett meddelande då processer avslutas, och om processen är en förgrundsprocess ska dess totala exekveringstid skrivas ut.
+
 
 \section{Programbeskrivning}
+
+Programmet börjar med att registrera en signal handler för SIGINT för huvudprocessen.
+Sedan startas en evig loop som kontinuerligt läser in kommandon, med argument, och exekverar dessa.
+Kommandotypen kontrolleras i följande ordning:
+\begin{enumerate}
+\item{Inbyggt kommando}
+\item{Förgrundskommando}
+\item{Bakgrundskommando}
+\end{enumerate}
+
+Om kommandot är ett inbyggt kommando exekveras detta och loopen fortsätter.\\
+Om kommandot ska köras i förgrunden skapas en child-process som exekverar kommandot
+och parent-processen väntar på att child-processen ska avslutas innan loopen fortsätter.\\
+Om kommandot är ett bakgrundskommando exekveras kommandot i en child-process och loopen fortsätter.\\
+
+Efter att kommandot exekverats pollas det med ett icke-blockerande |waitpid|-anrop som kontrollerar ifall
+någon bakgrundsprocess har avslutats. Detta görs även då loopen avbryts för att rensa bort zombie-processer innnan programmet avslutas.
+
+% Nånting om zombieprocesser. De existerar vid SIGKILL t.ex.
 
 Se appendix för exempelkörning.\\
 
