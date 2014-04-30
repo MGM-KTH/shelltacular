@@ -128,7 +128,7 @@ void register_sighandler( int signal_code, void (*handler) (int sig) )
  */
 void sigint_handler(int sig)
 {
-	fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout); 
+	/* fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout);  */
 }
 
 int main(int argc, char **argv)
@@ -222,7 +222,6 @@ void spawn_foreground_process(char **args)
 
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
-		register_sighandler(SIGINT, sigint_handler);
 		retval = execvp(args[0], args);
 		if(-1 == retval) {
 			perror("Unknown command");
@@ -239,16 +238,26 @@ void spawn_foreground_process(char **args)
 			exit(EXIT_FAILURE);
 		}
 
-		waitpid(child_pid, &status, 0); /* 0: No options */
+		do {
+			waitpid(child_pid, &status, 0); /* 0: No options */
+		} while(!WIFEXITED(status) && !WIFSIGNALED(status));
 
 		/*
  		 * Calculate running time of child process
  		 */
 		gettimeofday(&tv2, NULL);
 		timeval_diff(&diff, &tv2, &tv1);
-		long int msec = diff.tv_sec*1000000 + diff.tv_usec; /* or, %ld.%06ld seconds */
-		printf("%sForeground process %d running '%s' ran for %ld msec%s\n",
-				C_FG_BLUE, child_pid, args[0], msec, C_FG_RESET);
+		double msec = (diff.tv_sec*1000000 + diff.tv_usec)/1000.0;
+		if (WIFEXITED(status)) {
+			printf("%sForeground process %d running '%s' terminated normally%s\n",
+				C_FG_BLUE, child_pid, args[0], C_FG_RESET);
+			printf("%sIt ran for %.3lf msec%s\n", C_FG_BLUE, msec, C_FG_RESET);
+		}
+		else if (WIFSIGNALED(status)) {
+			printf("%sForeground process %d running '%s' killed by signal %d%s\n",
+				C_FG_BLUE, child_pid, args[0], WTERMSIG(status), C_FG_RESET);
+			printf("%sIt ran for %.3lf msec%s\n", C_FG_BLUE, msec, C_FG_RESET);
+		}
 	}
 	return;
 }
@@ -263,7 +272,6 @@ void spawn_background_process(char **args)
 
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
-		register_sighandler(SIGINT, sigint_handler);
 		retval = execvp(args[0], args);
 		if(-1 == retval) {
 			perror("Unknown command");
