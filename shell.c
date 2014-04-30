@@ -79,6 +79,8 @@ void print_color(const char *string, int fgc, int bgc, int attr);
 int NUM_BACKGROUND_PROCESSES = 0;
 
 /* 
+ * Calculates the difference (tv1-tv2) between two timevals. 
+ *
  * source: http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html 
  */
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2) {
@@ -94,8 +96,7 @@ void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2
 		tv2->tv_sec -= nsec;
 	}
      
-	/* Compute the time remaining to wait.
-		tv_usec is certainly positive. */
+	/* Compute the difference. tv_usec is positive. */
        diff->tv_sec = tv1->tv_sec - tv2->tv_sec;
        diff->tv_usec = tv1->tv_usec - tv2->tv_usec;
        return;
