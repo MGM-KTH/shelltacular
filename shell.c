@@ -182,7 +182,7 @@ void loop()
 	}
 
 	if (NUM_BACKGROUND_PROCESSES > 0) { /* clean up zombie processes */
-			poll_background_processes();
+		poll_background_processes();
 	}
 	newline(); /* Prettier exit with newline */
 }
@@ -364,7 +364,8 @@ void change_dir(char *directory)
 
 	retval = chdir(directory);
 	if(-1 == retval) {
-		perror("error changing directory");
+		perror("error changing directory, go home");
+		change_dir(getenv("HOME"));
 	}else{
 		if(NULL != getcwd(buf, sizeof(buf))) {
 			setenv("PWD", buf, 1);
@@ -430,20 +431,31 @@ int getargs(char *buffer, char **args)
 				return 0;
 			}
 		}else if(i < ARGSIZE-1){
-			char last_char = token[strlen(token)-1];
-			if (last_char == '&') {
+
+			char *last_char = &(token[strlen(token)-1]);
+
+			if (*last_char == '&') {
 				process_type = PROCESS_TYPE_BACKGROUND;
-				*ptr = NULL;
+
+				if(strlen(token) > 1) { /* If no space between arg and '&' */
+					*last_char = '\0';
+					*(ptr++) = token; /* Set *ptr to token and increment ptr */
+				}
+
+				/* Treat '&' as an end of arguments */
 				break;
-			}
-			else {
+			}else{
+				/* Else proceed as usual */
 				*ptr = token;
 			}
 		}else{
-			/* Reached end of ARGSIZE, set last arg to NULL pointer */
-			*ptr = NULL;
+			/* Reached end of ARGSIZE, break. */
+			break;
 		}
 	}
+
+	/* set last arg to NULL pointer to terminate args array */
+	*ptr = NULL;
 	return process_type;
 }
 
