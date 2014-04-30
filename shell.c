@@ -482,7 +482,7 @@ void prompt()
 	/* Allocates a string with the value of the current directory */
 	char *pwdbuf = getcwd(NULL, 0);
 
-	char prompt[strlen(pwdbuf) + strlen(PROMPT) + 1];
+	char prompt[strlen(pwdbuf) + strlen(PROMPT) + strlen(C_FG_RESET)*3 + 1];
 	prompt[0] = '\0'; /* Make sure that prompt buffer is empty */
 
 	strcat(prompt, C_FG_MAGENTA);
