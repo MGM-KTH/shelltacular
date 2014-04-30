@@ -266,12 +266,6 @@ void poll_background_processes()
 	}
 }
 
-void print_color(const char *string, int fgc, int bgc, int attr)
-{
-	printf("\x1b[%dm\x1b[%dm%s\x1b[%dm\x1b[%dm",
-			fgc, bgc, string, 37, 40);
-}
-
 void change_dir(char *directory)
 {
 	int retval;
