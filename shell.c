@@ -5,10 +5,10 @@
  *	   shelltacular - start the shell
  *     BUILT-IN COMMANDS
  *         cd - change working directory
- *         exit - exit the shell (<C-d>)
+ *         exit - exit the shell
  *
- *     <cmd>     - run command cmd as a foreground process
- *     <cmd> &   - run command cmd as a background process
+ *     <cmd>     - run command <cmd> as a foreground process
+ *     <cmd> &   - run command <cmd> as a background process
  *
  * DESCRIPTION
  *     shelltacular is a minimalistic shell with two built-in commands,
@@ -108,14 +108,13 @@ void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2
 void register_sighandler( int signal_code, void (*handler) (int sig) )
 {
 	int retval;
-
 	struct sigaction signal_parameters;
 
 	signal_parameters.sa_handler = handler;
 	sigemptyset(&signal_parameters.sa_mask);
 	signal_parameters.sa_flags = 0;
 
-	retval = sigaction(signal_code, &signal_parameters, (void *) NULL);
+	retval = sigaction(signal_code, &signal_parameters, NULL);
 
 	if(-1 == retval) {
 		perror("sigaction() failed");
@@ -125,13 +124,12 @@ void register_sighandler( int signal_code, void (*handler) (int sig) )
 
 void sigint_handler(int sig)
 {
-	/* fputs("I'm sorry, Dave. I'm afraid I can't do that.\n", stdout); */
-	loop();
+	fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout); 
 }
 
 int main(int argc, char **argv)
 {
-	/* register_sighandler(SIGINT, sigint_handler); */
+	register_sighandler(SIGINT, sigint_handler);
 
 	/*
 	printf("%sCOLOR TEST\n%sBLACK %sRED %sGREEN %sYELLOW %sBLUE %sMAGENTA %sCYAN %sWHITE\n%s",
@@ -147,13 +145,16 @@ void loop()
 {
 	char line_buffer[BUFSIZE];
 	int process_type;
+	char *read_status;
 	char *args[ARGSIZE];
 
 	/* Start by outputing prompt */
 	prompt();
-
-	for(;fgets(line_buffer, BUFSIZE, stdin); process_type=0, clearargs(args)) {
-
+	while(1) {
+		read_status = fgets(line_buffer, BUFSIZE, stdin);
+		if (read_status == NULL) {
+			/*printf("Read failed\n");*/
+		}
 		process_type = getargs(line_buffer, args);
 
 		if(0 < process_type) {
@@ -164,6 +165,7 @@ void loop()
 			poll_background_processes();
 		}
 
+		clearargs(args);
 		prompt();
 	}
 
@@ -174,9 +176,9 @@ void spawn_command(char **args, int process_type)
 {
 	/* check if the command is the built-in command 'exit' */
 	if(strcmp("exit",args[0]) == 0) {
-            printf(": I'm afraid. I'm afraid, Dave. Dave, my mind is going.\n");
-            printf("I can feel it. I can feel it. My mind is going. There is no question about it.\n");
-            printf("I can feel it. I can feel it. I can feel it. I'm a... fraid.\n");
+            fputs(": I'm afraid. I'm afraid, Dave. Dave, my mind is going.\n", stdout);
+            fputs("I can feel it. I can feel it. My mind is going. There is no question about it.\n", stdout);
+            fputs("I can feel it. I can feel it. I can feel it. I'm a... fraid.\n", stdout);
             exit(EXIT_SUCCESS);
     }
 
