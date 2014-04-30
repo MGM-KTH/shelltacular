@@ -46,7 +46,7 @@
 #define PROCESS_TYPE_FOREGROUND 1
 #define PROCESS_TYPE_BACKGROUND 2
 #define BUFSIZE 70
-#define ARGSIZE 6 /* command included in ARGSIZE */
+#define ARGSIZE 7 /* command included in ARGSIZE, last arg reserved for NULL */
 #define PROMPT "$ "
 
 /* PERTY COOLORS */
@@ -415,8 +415,7 @@ int getargs(char *buffer, char **args)
 			if(0 == i) {
 				return 0;
 			}
-		}
-		else {
+		}else if(i < ARGSIZE-1){
 			char last_char = token[strlen(token)-1];
 			if (last_char == '&') {
 				process_type = PROCESS_TYPE_BACKGROUND;
@@ -426,6 +425,9 @@ int getargs(char *buffer, char **args)
 			else {
 				*ptr = token;
 			}
+		}else{
+			/* Reached end of ARGSIZE, set last arg to NULL pointer */
+			*ptr = NULL;
 		}
 	}
 	return process_type;
