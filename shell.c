@@ -49,6 +49,7 @@
 #define ARGSIZE 6 /* command included in ARGSIZE */
 #define PROMPT "$ "
 
+/* PERTY COOLORS */
 #define C_FG_BLACK   "\x1b[30m"
 #define C_FG_RED     "\x1b[31m"
 #define C_FG_GREEN   "\x1b[32m"
@@ -122,6 +123,9 @@ void register_sighandler( int signal_code, void (*handler) (int sig) )
 	}
 }
 
+/*
+ * Handles SIG_INT
+ */
 void sigint_handler(int sig)
 {
 	fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout); 
@@ -141,6 +145,9 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+/*
+ * Main loop
+ */
 void loop()
 {
 	char line_buffer[BUFSIZE];
@@ -172,6 +179,9 @@ void loop()
 	newline(); /* Prettier exit with newline */
 }
 
+/*
+ * Runs the given command and arguments
+ */
 void spawn_command(char **args, int process_type) 
 {
 	/* check if the command is the built-in command 'exit' */
@@ -197,6 +207,9 @@ void spawn_command(char **args, int process_type)
 	}
 }
 
+/*
+ * Start the command as a foreground process
+ */
 void spawn_foreground_process(char **args) 
 {
 	pid_t child_pid;
@@ -235,6 +248,9 @@ void spawn_foreground_process(char **args)
 	return;
 }
 
+/*
+ * Start the command as a background process
+ */
 void spawn_background_process(char **args) 
 {
 	pid_t child_pid;
@@ -256,6 +272,9 @@ void spawn_background_process(char **args)
 	return;
 }
 
+/*
+ * Check to see if any background processes has exited
+ */
 void poll_background_processes()
 {
 	pid_t child_pid;
@@ -282,6 +301,9 @@ void poll_background_processes()
 	}
 }
 
+/*
+ * Built in command for changing directory
+ */
 void change_dir(char *directory)
 {
 	int retval;
@@ -405,6 +427,9 @@ int getargs(char *buffer, char **args)
 	return process_type;
 }
 
+/*
+ * Print a newline character
+ */
 void newline()
 {
 	int retval;
@@ -414,6 +439,9 @@ void newline()
 	}
 }
 
+/*
+ * Build a prompt and print it to stdout
+ */
 void prompt()
 {
 	int retval;
