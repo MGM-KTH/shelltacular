@@ -27,8 +27,8 @@
 #include <wait.h>
 #endif
 
-#define PROCESS_KIND_FOREGROUND 1
-#define PROCESS_KIND_BACKGROUND 2
+#define PROCESS_TYPE_FOREGROUND 1
+#define PROCESS_TYPE_BACKGROUND 2
 #define BUFSIZE 70
 #define ARGSIZE 6 /* command included in ARGSIZE */
 #define PROMPT "$ "
@@ -52,7 +52,7 @@ void prompt();
 void clearargs(char **args);
 void printargs(char **args);
 int getargs(char *buffer, char **args);
-void spawn_command(char **args, int process_kind);
+void spawn_command(char **args, int process_type);
 void change_dir(char *directory);
 void spawn_foreground_process(char **args);
 void spawn_background_process(char **args);
@@ -129,19 +129,19 @@ int main(int argc, char **argv)
 void loop()
 {
 	char line_buffer[BUFSIZE];
-	int process_kind;
+	int process_type;
 	char *args[ARGSIZE];
 
 	/* Start by outputing prompt */
 	prompt();
 
-	for(;fgets(line_buffer, BUFSIZE, stdin); process_kind=0, clearargs(args)) {
+	for(;fgets(line_buffer, BUFSIZE, stdin); process_type=0, clearargs(args)) {
 
-		process_kind = getargs(line_buffer, args);
+		process_type = getargs(line_buffer, args);
 
-		if(0 < process_kind) {
+		if(0 < process_type) {
 
-			spawn_command(args, process_kind);
+			spawn_command(args, process_type);
 
 		}
 
@@ -154,7 +154,7 @@ void loop()
 	newline(); /* Prettier exit with newline */
 }
 
-void spawn_command(char **args, int process_kind) 
+void spawn_command(char **args, int process_type) 
 {
 	/* check if the command is the built-in command 'exit' */
 	if(strcmp("exit",args[0]) == 0) {
@@ -173,11 +173,10 @@ void spawn_command(char **args, int process_kind)
 
 
 	/* else, create a child process to run the system command */
-	printf("process kind: %d\n", process_kind);
-	if (process_kind == PROCESS_KIND_FOREGROUND) {
+	if (process_type == PROCESS_TYPE_FOREGROUND) {
 		spawn_foreground_process(args);
 	}
-	else if (process_kind == PROCESS_KIND_BACKGROUND) {
+	else if (process_type == PROCESS_TYPE_BACKGROUND) {
 		spawn_background_process(args);
 	}
 }
@@ -254,10 +253,14 @@ void poll_background_processes()
 			return;
 		}
 		else {
-			if WIFEXITED(status) {
+			if (WIFEXITED(status)) {
 				--NUM_BACKGROUND_PROCESSES;
-				printf("%sBackground process %d terminated%s\n",
+				printf("%sBackground process %d terminated normally%s\n",
 						C_FG_BLUE, child_pid, C_FG_RESET);
+			}
+			else if (WIFSIGNALED(status)) {
+				printf("%sBackground process %d killed by signal %d%s\n",
+						C_FG_BLUE, child_pid, WTERMSIG(status), C_FG_RESET);
 			}
 		}
 	}
@@ -352,7 +355,7 @@ void printargs(char **args)
 int getargs(char *buffer, char **args)
 {
 	int i;
-	int process_type = PROCESS_KIND_FOREGROUND;
+	int process_type = PROCESS_TYPE_FOREGROUND;
 	char *token;
 	char *string;
 	char *saveptr;
@@ -380,7 +383,7 @@ int getargs(char *buffer, char **args)
 		else {
 			char last_char = token[strlen(token)-1];
 			if (last_char == '&') {
-				process_type = PROCESS_KIND_BACKGROUND;
+				process_type = PROCESS_TYPE_BACKGROUND;
 				*ptr = NULL;
 				break;
 			}
