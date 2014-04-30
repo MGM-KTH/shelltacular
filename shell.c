@@ -82,7 +82,8 @@ int NUM_BACKGROUND_PROCESSES = 0;
 /* 
  * Calculates the difference (tv1-tv2) between two timevals. 
  *
- * source: http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html 
+ * based on source from:
+ * http://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html 
  */
 void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2) {
 	/* Perform the carry for the later subtraction by updating y. */
@@ -467,7 +468,7 @@ void newline()
 	int retval;
 	retval = fputs("\n", stdout);
 	if(EOF == retval) {
-		exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -477,17 +478,25 @@ void newline()
 void prompt()
 {
 	int retval;
-	char prompt[256];
+
+	/* Allocates a string with the value of the current directory */
+	char *pwdbuf = getcwd(NULL, 0);
+
+	char prompt[strlen(pwdbuf) + strlen(PROMPT) + 1];
 	prompt[0] = '\0'; /* Make sure that prompt buffer is empty */
 
 	strcat(prompt, C_FG_MAGENTA);
-	strcat(prompt, getenv("PWD")); /* Maybe use getcwd instead?? */
+	strcat(prompt, pwdbuf);
 	strcat(prompt, C_FG_CYAN);
 	strcat(prompt, PROMPT);
 	strcat(prompt, C_FG_RESET);
 
 	retval = fputs(prompt, stdout);
+
+	/* Free the allocated pwd buffer */
+	free(pwdbuf);
+
 	if(EOF == retval) {
-		exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
 	}
 }
