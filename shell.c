@@ -159,8 +159,8 @@ void loop()
 	prompt();
 	while(1) {
 		read_status = fgets(line_buffer, BUFSIZE, stdin);
-		if (read_status == NULL) {
-			/*printf("Read failed\n");*/
+		if (read_status == NULL) { /* error or EOF */
+			printf("Read failed\n");
 		}
 		process_type = getargs(line_buffer, args);
 
