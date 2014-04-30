@@ -91,8 +91,18 @@ samt i appendix.
 
 % Uppskattning av tidsåtgång och eventuella kommentarer kring laborationen
 \subsection{Verksamhetsberättelse}
+Total tidsåtgång: 10 timmar. I princip allt arbete utfördes gemensamt.\\
+
+Vi valde att delvis följa rekommendationerna i labbpeket. Vi började med att implementera förgrundsprocesser med hjälp av |fork| och |execvp|. Det var lite problematiskt att implementera statistikutskrifter för dessa då tidtagning visade sig vara lite problematiskt.
+Därefter la vi till inbyggda kommandon. Sedan la vi till bakgrundsprocesser som kontrolleras med pollning. Detta gick oväntat smidigt och fungerade i princip direkt. Det svåraste med bakgrundsprocesser visade sig vara att parsa |&|-symbolen.
+
+
 
 \subsection{Synpunkter}
+Ännu en gång var dokumentationen som fanns tillgänglig väldigt bra, framförallt labbpeket.
+
+Det är en rolig labb där man får repetera en del stränghantering i C 
+och befästa sina kunskaper om processer, signaler och allmän process-kommunikation.
 
 
 \section{Förberedelsefrågor}
@@ -180,6 +190,8 @@ Det ska även skrivas ut ett meddelande då processer avslutas, och om processen
 
 \section{Programbeskrivning}
 
+Se appendix för källkod samt exempelkörningar.\\
+
 Programmet börjar med att registrera en signal handler för SIGINT för huvudprocessen.
 Sedan startas en evig loop som kontinuerligt läser in kommandon, med argument, och exekverar dessa.
 Kommandotypen kontrolleras i följande ordning:
@@ -189,7 +201,7 @@ Kommandotypen kontrolleras i följande ordning:
 \item{Bakgrundskommando}
 \end{enumerate}
 
-Om kommandot är ett inbyggt kommando exekveras detta och loopen fortsätter.\\
+Om kommandot är ett inbyggt kommando exekveras det och loopen fortsätter.\\
 Om kommandot ska köras i förgrunden skapas en child-process som exekverar kommandot
 och parent-processen väntar på att child-processen ska avslutas innan loopen fortsätter.\\
 Om kommandot är ett bakgrundskommando exekveras kommandot i en child-process och loopen fortsätter.\\
@@ -198,8 +210,6 @@ Efter att kommandot exekverats pollas det med ett icke-blockerande |waitpid|-anr
 någon bakgrundsprocess har avslutats. Detta görs även då loopen avbryts för att rensa bort zombie-processer innnan programmet avslutas.
 
 % Nånting om zombieprocesser. De existerar vid SIGKILL t.ex.
-
-Se appendix för exempelkörning.\\
 
 
 
