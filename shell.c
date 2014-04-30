@@ -78,7 +78,6 @@ void timeval_diff(struct timeval *diff, struct timeval *tv1, struct timeval *tv2
 void print_color(const char *string, int fgc, int bgc, int attr);
 
 int NUM_BACKGROUND_PROCESSES = 0;
-int RECOVERED_FROM_SIGNAL = 0;
 
 /* 
  * Calculates the difference (tv1-tv2) between two timevals. 
@@ -130,7 +129,6 @@ void register_sighandler( int signal_code, void (*handler) (int sig) )
 void sigint_handler(int sig)
 {
 	fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout); 
-	RECOVERED_FROM_SIGNAL = 1;
 }
 
 int main(int argc, char **argv)
@@ -162,10 +160,10 @@ void loop()
 	while(1) {
 		read_status = fgets(line_buffer, BUFSIZE, stdin);
 		if (read_status == NULL) {
-			if(RECOVERED_FROM_SIGNAL) {
-				RECOVERED_FROM_SIGNAL = 0;
-			}else{
-				break;
+			if(feof(stdin)) {
+				break; /* EOF encountered, exit */
+			}else if(ferror(stdin)) {
+				/* ERROR */
 			}
 		}
 		process_type = getargs(line_buffer, args);
