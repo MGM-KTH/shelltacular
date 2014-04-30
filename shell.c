@@ -124,11 +124,12 @@ void register_sighandler( int signal_code, void (*handler) (int sig) )
 }
 
 /*
- * Handles SIG_INT
+ * Handler for SIGINT
  */
 void sigint_handler(int sig)
 {
-	/* fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout);  */
+	/*fputs(" I'm sorry, Dave. I'm afraid I can't do that.\n", stdout);*/
+	newline();
 }
 
 int main(int argc, char **argv)
@@ -180,6 +181,9 @@ void loop()
 		prompt();
 	}
 
+	if (NUM_BACKGROUND_PROCESSES > 0) { /* clean up zombie processes */
+			poll_background_processes();
+	}
 	newline(); /* Prettier exit with newline */
 }
 
@@ -298,7 +302,7 @@ void poll_background_processes()
 		if (0 == child_pid) { /* No child processes wishes to report status */
 			return;
 		}
-		if (-1 == child_pid) { /* received signal? */
+		if (-1 == child_pid) {
 			return;
 		}
 		else {
