@@ -116,10 +116,12 @@ int main(int argc, char **argv)
 {
 	/* register_sighandler(SIGINT, sigint_handler); */
 
+	/*
 	printf("%sCOLOR TEST\n%sBLACK %sRED %sGREEN %sYELLOW %sBLUE %sMAGENTA %sCYAN %sWHITE\n%s",
 			BLINK_ON,
 			C_FG_BLACK, C_FG_RED, C_FG_GREEN, C_FG_YELLOW, C_FG_BLUE,
 			C_FG_MAGENTA, C_FG_CYAN, C_FG_WHITE, ALL_OFF);
+			*/
 	loop();
 	return 0;
 }
