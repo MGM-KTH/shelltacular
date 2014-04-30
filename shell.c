@@ -224,6 +224,7 @@ void spawn_foreground_process(char **args)
 
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
+		register_sighandler(SIGINT, sigint_handler);
 		retval = execvp(args[0], args);
 		if(-1 == retval) {
 			perror("Unknown command");
@@ -264,6 +265,7 @@ void spawn_background_process(char **args)
 
 	child_pid = fork();
 	if (0 == child_pid) { /* Run command in child */
+		register_sighandler(SIGINT, sigint_handler);
 		retval = execvp(args[0], args);
 		if(-1 == retval) {
 			perror("Unknown command");
