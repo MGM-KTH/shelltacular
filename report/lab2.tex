@@ -93,8 +93,18 @@ samt i appendix.
 \subsection{Verksamhetsberättelse}
 Total tidsåtgång: 10 timmar. I princip allt arbete utfördes gemensamt.\\
 
-Vi valde att delvis följa rekommendationerna i labbpeket. Vi började med att implementera förgrundsprocesser med hjälp av |fork| och |execvp|. Det var lite problematiskt att implementera statistikutskrifter för dessa då tidtagning visade sig vara lite problematiskt.
-Därefter la vi till inbyggda kommandon. Sedan la vi till bakgrundsprocesser som kontrolleras med pollning. Detta gick oväntat smidigt och fungerade i princip direkt. Det svåraste med bakgrundsprocesser visade sig vara att parsa |&|-symbolen.
+Vi valde att delvis följa rekommendationerna i labbpeket.
+Vi började med att implementera en prompt som kunde läsa in ett kommando och dess argument i en |char**|.
+Sedan fortsatte vi med implementering av förgrundsprocesser med hjälp av |fork| och |execvp|.
+Det var inte helt enkelt att implementera statistikutskrifter för dessa då tidtagning visade sig vara lite problematiskt.
+Därefter implementerade vi de inbyggda kommandona |cd| och |exit|.
+Sedan la vi till bakgrundsprocesser som kontrolleras med pollning.
+Detta gick oväntat smidigt och fungerade i princip direkt.
+Det svåraste med bakgrundsprocesser visade sig vara att parsa |&|-symbolen,
+eftersom den antingen kan stå för sig själv eller vara avslutande |char| i sista argumentet.
+Något som visade sig svårare än vi trodde var att se till så att vår shell ignorerade SIG\_INT.
+Detta var pågrund av att våran loop körde tills vi fick NULL som resultat från |fgets()|.
+Men det tog ett tag för oss att inse att |fgets()| även returnerar NULL vid andra fel än när EOF påträffats, till exempel att den avbröts av en signal.
 
 
 
