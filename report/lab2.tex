@@ -32,6 +32,8 @@
 
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{graphicx}
+\usepackage[left=3.5cm, right=3.5cm]{geometry} % margins for title page. changed below.
 
 \usepackage{sectsty} % Allows customizing section commands
 \allsectionsfont{\normalfont} % Make all sections centered, the default font and small caps
@@ -80,9 +82,7 @@
 
 % OBS! Se till så att filerna är läsbara för assistenterna (se 3.4 ).
 Koden finns tillgänglig i följande sökväg:\\
-|/afs/ict.kth.se/home/m/r/mrunelov/os/lab2/shell.c|.\\
-
-samt i appendix.
+|/afs/ict.kth.se/home/m/r/mrunelov/os/lab2/shelltacular.c|.\\
 
 
 % Verksamhetsberättelse och synpunkter på laborationen. Beskriv arbetets utveckling. Hade du problem med verktygen,
@@ -107,12 +107,16 @@ Detta var på grund av att vår loop körde tills vi fick |NULL| som resultat fr
 Men det tog ett tag för oss att inse att |fgets()| även returnerar NULL vid andra fel än när EOF påträffats, till exempel när den avbröts av en signal.
 
 
-
 \subsection{Synpunkter}
 Ännu en gång var dokumentationen som fanns tillgänglig väldigt bra, framförallt labbpeket.
 
 Det är en rolig labb där man får repetera en del stränghantering i C 
 och befästa sina kunskaper om processer, signaler och allmän process-kommunikation.
+
+it.kth.se-servrarna är mycket långsammare än de vi är vana vid på CSC.
+Vi har ingen aning om varför, men det kanske kan åtgärdas.
+
+
 
 
 \section{Förberedelsefrågor}
@@ -200,7 +204,7 @@ Det ska även skrivas ut ett meddelande då processer avslutas, och om processen
 
 \section{Programbeskrivning}
 
-Se appendix för källkod samt exempelkörningar.\\
+Se appendix för exempelkörning.\\
 
 Programmet börjar med att registrera en signal handler för SIGINT för huvudprocessen.
 Sedan startas en evig loop som kontinuerligt läser in kommandon, med argument, och exekverar dessa.
@@ -219,13 +223,17 @@ Om kommandot är ett bakgrundskommando exekveras kommandot i en child-process oc
 Efter att kommandot exekverats pollas det med ett icke-blockerande |waitpid|-anrop som kontrollerar ifall
 någon bakgrundsprocess har avslutats. Detta görs även då loopen avbryts för att rensa bort zombie-processer innnan programmet avslutas.
 
-% Nånting om zombieprocesser. De existerar vid SIGKILL t.ex.
+% Nånting om zombieprocesser. De existerar vid SIGKILL t.ex, och om de avslutas efter sista kontrollen men innan exit.
 
 
-
+%------------------------------------------------------------------------------
 \newpage
 \section*{Appendix}
 \subsection*{Exempelkörning}
+%\newgeometry{left=0.5cm} % Set LR margins for the rest of the document
+\includegraphics[scale=0.7]{"test3"}
+
+
 %------------------------------------------------------------------------------
 
 \end{document}
