@@ -102,9 +102,9 @@ Sedan la vi till bakgrundsprocesser som kontrolleras med pollning.
 Detta gick oväntat smidigt och fungerade i princip direkt.
 Det svåraste med bakgrundsprocesser visade sig vara att parsa |&|-symbolen,
 eftersom den antingen kan stå för sig själv eller vara avslutande |char| i sista argumentet.
-Något som visade sig svårare än vi trodde var att se till så att vår shell ignorerade SIG\_INT.
-Detta var pågrund av att våran loop körde tills vi fick NULL som resultat från |fgets()|.
-Men det tog ett tag för oss att inse att |fgets()| även returnerar NULL vid andra fel än när EOF påträffats, till exempel att den avbröts av en signal.
+Något som visade sig svårare än vi trodde var att se till att vår shell ignorerade |SIGINT|.
+Detta var på grund av att vår loop körde tills vi fick |NULL| som resultat från |fgets()|.
+Men det tog ett tag för oss att inse att |fgets()| även returnerar NULL vid andra fel än när EOF påträffats, till exempel när den avbröts av en signal.
 
 
 
