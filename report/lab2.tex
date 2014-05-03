@@ -108,10 +108,10 @@ Men det tog ett tag för oss att inse att |fgets()| även returnerar NULL vid an
 
 
 \subsection{Synpunkter}
-Ännu en gång var dokumentationen som fanns tillgänglig väldigt bra, framförallt labbpeket.
+Ännu en gång var dokumentationen som fanns tillgänglig väldigt bra, framförallt labbpeket.\\
 
 Det är en rolig labb där man får repetera en del stränghantering i C 
-och befästa sina kunskaper om processer, signaler och allmän process-kommunikation.
+och befästa sina kunskaper om processer, signaler och allmän process-kommunikation.\\
 
 it.kth.se-servrarna är mycket långsammare än de vi är vana vid på CSC.
 Vi har ingen aning om varför, men det kanske kan åtgärdas.
@@ -179,7 +179,7 @@ sigaction verkar vara det man använder nuförtiden då signal inte är lika por
 då en förgrundsprocess i den termineras med <Ctrl-c>?}
 
 -- Genom att registrera en signal handler som hanterar |SIGINT|. 
-Man borde dock ta bort denna handler efter att förgrundsprocessen har avslutats
+Man vill dock kanske ta bort denna handler efter att förgrundsprocessen har avslutats
 då det inte är särskilt användarvänligt att förhindra |SIGINT| i huvudprogrammet.
 
 \item
@@ -199,7 +199,7 @@ Utöver att delegera anrop till |exec| ska två inbyggda kommandon,
  |cd| (change directory), och |exit| (avsluta) implementeras.
 
 När något icke-inbyggt kommando ges startas en ny process, och |pid| för denna process skrivs ut.
-Det ska även skrivas ut ett meddelande då processer avslutas, och om processen är en förgrundsprocess ska dess totala exekveringstid skrivas ut.
+Det ska även skrivas ut ett meddelande då processer avslutas, och om processen var en förgrundsprocess ska dess totala exekveringstid skrivas ut.
 
 
 \section{Programbeskrivning}
@@ -220,8 +220,8 @@ Om kommandot ska köras i förgrunden skapas en child-process som exekverar komm
 och parent-processen väntar på att child-processen ska avslutas innan loopen fortsätter.\\
 Om kommandot är ett bakgrundskommando exekveras kommandot i en child-process och loopen fortsätter.\\
 
-Efter att kommandot exekverats pollas det med ett icke-blockerande |waitpid|-anrop som kontrollerar ifall
-någon bakgrundsprocess har avslutats. Detta görs även då loopen avbryts för att rensa bort zombie-processer innnan programmet avslutas.
+Efter att kommandot exekverats sker pollning med ett icke-blockerande |waitpid|-anrop som kontrollerar ifall
+någon bakgrundsprocess har avslutats. Detta görs även då loopen avbryts för att rensa bort zombie-processer precis innan programmet avslutas.
 
 % Nånting om zombieprocesser. De existerar vid SIGKILL t.ex, och om de avslutas efter sista kontrollen men innan exit.
 
