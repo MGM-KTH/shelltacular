@@ -148,7 +148,7 @@ Felet indikerar att ett försök till ogiltig minnesläsning skedde.
 \item
 \emph{Varför kan man inte blockera SIGKILL?} % TODO: Se över svaret!
 
--- För att man ska kunna tvinga processer att pausa (|SIGSTOP|) och avsluta.
+-- För att man (särskilt operativsystemet) ska kunna tvinga processer att pausa (|SIGSTOP|) och avsluta.
 
 % Detta finns dokumenterat i man-filen för sigaction:
 % \begin{verbatim}
@@ -170,16 +170,14 @@ tar en int-parameter och returnerar void.
 \emph{Vilket systemanrop använder sigset(3C) troligtvis för att 
 installera en signalhanterare?} % TODO: Se över.
 
--- sigaction(2) eller signal(2).
-
-sigaction verkar vara det man använder nuförtiden då signal inte är lika portabel.
+-- sigaction(2) eller signal(2). sigaction verkar vara det man använder nuförtiden då signal inte är lika portabel.
 
 \item
 \emph{Hur gör man för att din kommandotolk inte skall termineras 
 då en förgrundsprocess i den termineras med <Ctrl-c>?}
 
--- Genom att registrera en signal handler som hanterar |SIGINT|. 
-Man vill dock kanske ta bort denna handler efter att förgrundsprocessen har avslutats
+-- Genom att registrera en signal handler som hanterar |SIGINT|.
+Ofta vill man dock ta bort denna handler efter att förgrundsprocessen har avslutats
 då det inte är särskilt användarvänligt att förhindra |SIGINT| i huvudprogrammet.
 
 \item
@@ -221,17 +219,29 @@ och parent-processen väntar på att child-processen ska avslutas innan loopen f
 Om kommandot är ett bakgrundskommando exekveras kommandot i en child-process och loopen fortsätter.\\
 
 Efter att kommandot exekverats sker pollning med ett icke-blockerande |waitpid|-anrop som kontrollerar ifall
-någon bakgrundsprocess har avslutats. Detta görs även då loopen avbryts för att rensa bort zombie-processer precis innan programmet avslutas.
-
-% Nånting om zombieprocesser. De existerar vid SIGKILL t.ex, och om de avslutas efter sista kontrollen men innan exit.
+någon bakgrundsprocess har avslutats. När loopen avbryts och programmet ska avslutas registreras en signal handler som automatiskt rensar bort zombieproceser. Efter detta körs en sista pollning för att undvika ett race condition där child-processer dog medan signal handlern registrerades. % TODO: Ska vi ha det så här? Ska vi isf beskriva det såhär?
 
 
 %------------------------------------------------------------------------------
 \newpage
 \section*{Appendix}
-\subsection*{Exempelkörning}
+\subsection*{Exempelkörning (se beskrivning på nästa sida):}
 %\newgeometry{left=0.5cm} % Set LR margins for the rest of the document
 \centerline{\includegraphics[scale=0.9]{"test3"}}
+\newpage
+\subsection*{Flöde i ovanstående exempelkörning:}
+\begin{align*}
+&\text{Start förgrundsprocess (ls)} \rightarrow \text{Avslut förgrundsprocess (ls)} 
+\\\\&\text{Start bakgrundsprocess (ls)} \rightarrow \text{Avslut bakgrundsprocess (ls)} 
+\\\\&\text{Start bakgrundsprocess (cat)} \rightarrow \text{Start förgrundsprocess (kill)} 
+\\& \rightarrow \text{Avslut förgrundsprocess (kill)} \rightarrow \text{Avslut bakgrundsprocess (cat)}
+\\\\&\text{Start bakgrundsprocess (tick.sh)} \rightarrow \text{Avslut bakgrundsprocess (tick.sh)}  
+\\\\&\text{Start bakgrundsprocess (eternal.sh)} \rightarrow \text{Start bakgrundsprocess (eternal.sh)} 
+\\&\rightarrow \text{Start bakgrundsprocess (tick.sh)} \rightarrow \text{Avslut bakgrundsprocess (tick.sh)} 
+\\&\rightarrow\text{Start förgrundsprocess (kill)} \rightarrow \text{Avslut förgrundsprocess (kill)} 
+\\&\rightarrow\text{Start förgrundsprocess (kill)} \rightarrow \text{Avslut förgrundsprocess (kill)} 
+\\&\rightarrow\text{Avslut bakgrundsprocess (eternal.sh)} \rightarrow \text{Avslut bakgrundsprocess (eternal.sh)} 
+\end{align*}
 
 
 %------------------------------------------------------------------------------
