@@ -183,7 +183,8 @@ void loop()
 	}
 
 	if (NUM_BACKGROUND_PROCESSES > 0) { /* clean up zombie processes */
-		poll_background_processes();
+		register_sighandler(SIGCHLD, SIG_IGN); /* automatically reap zombie children */
+		poll_background_processes(); /* poll to avoid race conditions */
 	}
 	newline(); /* Prettier exit with newline */
 }
