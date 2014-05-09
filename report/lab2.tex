@@ -82,7 +82,7 @@
 
 % OBS! Se till så att filerna är läsbara för assistenterna (se 3.4 ).
 Koden finns tillgänglig i följande sökväg:\\
-|/afs/ict.kth.se/home/m/r/mrunelov/os/lab2/shelltacular.c|.\\
+|/afs/ict.kth.se/home/m/r/mrunelov/os/lab2/shell.c|.\\
 
 
 % Verksamhetsberättelse och synpunkter på laborationen. Beskriv arbetets utveckling. Hade du problem med verktygen,
@@ -184,8 +184,7 @@ då det inte är särskilt användarvänligt att förhindra |SIGINT| i huvudprog
 \emph{Studera körningsexemplet nedan och förklara varför man inte har bytt 
 ''working directory'' till /home/ds/robertr när man avslutat miniShell:et?}
 
--- När processen för miniShell skapas får den en kopia på environment-variabler. Processen har alltså ett eget, lokalt 
-working directory. När programmet avslutas ser vi återigen den tidigare processens working directory.
+-- När processen för miniShell skapas får den en kopia på environment-variabler. Processen har alltså ett eget, lokalt, working directory. När programmet avslutas ser vi återigen den tidigare processens working directory.
 
 \end{enumerate}
 
@@ -194,7 +193,7 @@ working directory. När programmet avslutas ser vi återigen den tidigare proces
 Uppgiften går ut på att skriva en enkel kommandotolk 
 som hanterar både förgrunds- och bakgrundsprocesser.
 Utöver att delegera anrop till |exec| ska två inbyggda kommandon,
- |cd| (change directory), och |exit| (avsluta) implementeras.
+ |cd| (change directory), och |exit| implementeras.
 
 När något icke-inbyggt kommando ges startas en ny process, och |pid| för denna process skrivs ut.
 Det ska även skrivas ut ett meddelande då processer avslutas, och om processen var en förgrundsprocess ska dess totala exekveringstid skrivas ut.
