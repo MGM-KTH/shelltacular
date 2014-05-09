@@ -157,7 +157,7 @@ void loop()
 	char *read_status;
 	char *args[ARGSIZE];
 
-	/* Start by outputing prompt */
+	/* Start by outputting prompt */
 	prompt();
 	while(1) {
 		read_status = fgets(line_buffer, BUFSIZE, stdin);
